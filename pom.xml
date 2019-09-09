@@ -23,6 +23,7 @@
         <module>grpc-starter-demo</module>
         <module>jpa-demo</module>
         <module>jpa-json-demo</module>
+        <module>jpa-validation</module>
     </modules>
 
     <properties>
