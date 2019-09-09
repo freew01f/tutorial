@@ -1,0 +1,14 @@
+server:
+  port: 8081
+spring:
+  jpa:
+    database: mysql
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost:33306/demo?useUnicode=true&characterEncoding=utf8&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Hongkong
+    username: root
+    password: spectre
+    driver-class-name: com.mysql.cj.jdbc.Driver

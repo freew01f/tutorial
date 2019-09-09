@@ -1,0 +1,15 @@
+id                     | int | 8 |   唯一标识                                                                          |
+title                  | varchar | 255 |   名称                                                                            |
+subtitle | varchar | 255 | 别名 |
+info         | text |      |   考试须知                                                                  |
+start_time | date |      |    开始时间                                                                      |
+end_time | date | | 结束时间 |
+late_time_allow | int | 2 | 开考后若干分钟后不能登录 |
+type               | int | 2 |   0 统一考试 1 随来随考                                                         |
+duration          | int | 2 |   考试时长   |
+positions       |      |      | 关联职位              |
+review            | bool |      | 手工阅卷              |
+end_notice | json | | 考试结束 提示语 |
+create_time            | date |      | 创建时间 |
+update_time          | date |      | 最新修改时间 |
+operator_id          | int | 8 | 创建人id |
