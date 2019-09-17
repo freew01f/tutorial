@@ -34,6 +34,7 @@ import java.util.Map;
 
 /**
  * https://www.cnblogs.com/yueshutong/p/9381540.html
+ * https://programmerfriend.com/ultimate-guide-to-redis-cache-with-spring-boot-2-and-spring-data-redis/?gthb
  */
 @SpringBootApplication
 public class CacheDemoApplication implements CommandLineRunner {
