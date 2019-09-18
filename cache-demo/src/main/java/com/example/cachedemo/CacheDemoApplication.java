@@ -37,6 +37,7 @@ import java.util.Map;
  * https://programmerfriend.com/ultimate-guide-to-redis-cache-with-spring-boot-2-and-spring-data-redis/?gthb
  */
 @SpringBootApplication
+@EnableCaching
 public class CacheDemoApplication implements CommandLineRunner {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -71,7 +72,6 @@ class Member implements Serializable {
 }
 
 @Service
-@EnableCaching
 class MemberService{
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
