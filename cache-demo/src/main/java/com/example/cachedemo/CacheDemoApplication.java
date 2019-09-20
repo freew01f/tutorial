@@ -21,6 +21,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,9 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * https://www.cnblogs.com/yueshutong/p/9381540.html
@@ -157,28 +157,33 @@ class CacheConfig extends CachingConfigurerSupport {
     }
 
     @Bean
-    public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory cf) {
-        RedisTemplate<String, String> redisTemplate = new RedisTemplate<String, String>();
-        redisTemplate.setConnectionFactory(cf);
-        return redisTemplate;
-    }
-
-    @Bean
     public RedisCacheConfiguration cacheConfiguration(CacheConfigurationProperties properties) {
         return createCacheConfiguration(properties.getTimeoutSeconds());
     }
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory, CacheConfigurationProperties properties) {
-        Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
+    public CacheManager cacheManager(RedisConnectionFactory lettuceConnectionFactory, CacheConfigurationProperties properties) {
 
+        RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig();
+        // 设置缓存管理器管理的缓存的默认过期时间
+        defaultCacheConfig = defaultCacheConfig.entryTtl(Duration.ofSeconds(properties.getTimeoutSeconds()))
+                // 设置 key为string序列化
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                // 设置value为json序列化
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+                // 不缓存空值
+                .disableCachingNullValues();
+
+        Map<String, RedisCacheConfiguration> configMap = new HashMap<>();
         for (Map.Entry<String, Long> cacheNameAndTimeout : properties.getCacheExpirations().entrySet()) {
-            cacheConfigurations.put(cacheNameAndTimeout.getKey(), createCacheConfiguration(cacheNameAndTimeout.getValue()));
+            configMap.put(cacheNameAndTimeout.getKey(), defaultCacheConfig.entryTtl(Duration.ofSeconds(cacheNameAndTimeout.getValue())));
+
         }
 
-        return RedisCacheManager
-                .builder(redisConnectionFactory)
-                .cacheDefaults(cacheConfiguration(properties))
-                .withInitialCacheConfigurations(cacheConfigurations).build();
+        RedisCacheManager cacheManager = RedisCacheManager.builder(lettuceConnectionFactory)
+                .cacheDefaults(defaultCacheConfig)
+                .withInitialCacheConfigurations(configMap)
+                .build();
+        return cacheManager;
     }
 }
