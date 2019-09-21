@@ -128,7 +128,6 @@ class MemberController{
 @ConfigurationProperties(prefix = "cache")
 @Data
 class CacheConfigurationProperties {
-
     private long timeoutSeconds = 60;
     private int redisPort = 6379;
     private String redisHost = "localhost";
@@ -162,25 +161,25 @@ class CacheConfig extends CachingConfigurerSupport {
     }
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory lettuceConnectionFactory, CacheConfigurationProperties properties) {
-
+    public CacheManager cacheManager(RedisConnectionFactory rcf, CacheConfigurationProperties properties) {
         RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig();
-        // 设置缓存管理器管理的缓存的默认过期时间
+        /**
+         * 设置序列化方式
+         */
         defaultCacheConfig = defaultCacheConfig.entryTtl(Duration.ofSeconds(properties.getTimeoutSeconds()))
-                // 设置 key为string序列化
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                // 设置value为json序列化
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
-                // 不缓存空值
                 .disableCachingNullValues();
-
+        /**
+         * 分别设置缓存时间
+         */
         Map<String, RedisCacheConfiguration> configMap = new HashMap<>();
         for (Map.Entry<String, Long> cacheNameAndTimeout : properties.getCacheExpirations().entrySet()) {
             configMap.put(cacheNameAndTimeout.getKey(), defaultCacheConfig.entryTtl(Duration.ofSeconds(cacheNameAndTimeout.getValue())));
 
         }
 
-        RedisCacheManager cacheManager = RedisCacheManager.builder(lettuceConnectionFactory)
+        RedisCacheManager cacheManager = RedisCacheManager.builder(rcf)
                 .cacheDefaults(defaultCacheConfig)
                 .withInitialCacheConfigurations(configMap)
                 .build();
